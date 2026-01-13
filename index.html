@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rahma's Heartbeat Arabic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@1,700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-red: #d90429;
+            --glow-red: #ff4d6d;
+            --text-cream: #fffdf7;
+            --bg-dark: #0a0a14;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .stage {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            aspect-ratio: 4/3;
+            position: relative;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* --- أنماط الرسم المشتركة (للقلب والاسم فقط) --- */
+        .draw-path {
+            fill: transparent;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 2000; /* قيمة افتراضية كبيرة */
+            stroke-dashoffset: 2000;
+            opacity: 0;
+        }
+
+        /* --- تنسيق القلب --- */
+        #heartPath {
+            stroke: var(--main-red);
+            stroke-width: 6; /* جعلت خط القلب أسمك قليلاً */
+            filter: drop-shadow(0 0 15px var(--glow-red));
+            transition: fill 2s ease-in-out;
+        }
+
+        /* كلاس الامتلاء النهائي للقلب */
+        #heartPath.filled {
+            fill: rgba(217, 4, 41, 0.9);
+        }
+
+        /* --- تنسيق اسم رحمة --- */
+        #rahmaName path {
+            stroke: var(--text-cream);
+            stroke-width: 3.5; /* جعلت خط الاسم أسمك وأوضح */
+            filter: drop-shadow(0 0 8px var(--text-cream));
+        }
+
+        /* --- تنسيق الجمل العربية المحيطة --- */
+        .surrounding-text {
+            font-family: 'Amiri', serif; /* استخدام الخط العربي */
+            font-size: 32px; /* تكبير حجم الخط العربي */
+            font-weight: 700;
+            font-style: italic;
+            fill: var(--text-cream);
+            text-shadow: 0 0 5px var(--glow-red);
+            opacity: 0; /* مخفي في البداية */
+            transition: opacity 2.5s ease-in-out; /* انتقال ناعم للظهور */
+        }
+
+        /* --- كلاسات تفعيل الأنيميشن --- */
+        /* 1. بدء رسم الخطوط (للقلب والاسم) */
+        .start-drawing {
+            opacity: 1;
+            animation: drawing 3.5s ease-out forwards;
+        }
+
+        /* 2. ظهور النصوص العربية */
+        .fade-in-text {
+            opacity: 1;
+        }
+
+        /* --- Keyframes --- */
+        @keyframes drawing {
+            to { stroke-dashoffset: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="stage">
+        <svg viewBox="0 0 800 600">
+            
+            <defs>
+                <path id="topCurve" d="M 200,220 A 250,180 0 0,1 600,220" />
+                <path id="bottomCurve" d="M 220,480 A 220,150 0 0,0 580,480" />
+            </defs>
+
+            <path id="heartPath" class="draw-path" d="M400,530 C250,400 180,300 240,200 C285,130 360,170 400,230 C440,170 515,130 560,200 C620,300 550,400 400,530 Z" />
+            
+            <g id="rahmaName" transform="translate(250, 200) scale(0.8)">
+                <path class="draw-path" d="M30.5,105 C30.5,105 25,65 45,35 C55,20 85,20 95,45 C100,60 90,80 65,85 M65,85 C75,90 95,115 105,130" />
+                <path class="draw-path" d="M135,95 C125,85 115,95 115,115 C115,130 125,135 135,130 M135,95 C135,95 135,125 135,130 C135,135 145,135 150,125" />
+                <path class="draw-path" d="M165,20 C160,60 155,125 155,130 M155,95 C175,85 190,95 190,125 C190,135 195,135 200,125" />
+                <path class="draw-path" d="M210,95 C205,130 205,130 205,130 M210,100 C225,85 240,95 240,125 M240,100 C255,85 270,95 270,125 C270,135 275,135 280,125" />
+                <path class="draw-path" d="M315,95 C305,85 295,95 295,115 C295,130 305,135 315,130 M315,95 C315,95 315,125 315,130 C315,135 325,135 330,125" />
+            </g>
+
+            <text class="surrounding-text" dy="-15">
+                <textPath href="#topCurve" startOffset="50%" text-anchor="middle">
+                    أنتِ نبض قلبي
+                </textPath>
+            </text>
+            
+            <text class="surrounding-text" dy="40">
+                <textPath href="#bottomCurve" startOffset="50%" text-anchor="middle">
+                    حب لا ينتهي
+                </textPath>
+            </text>
+
+        </svg>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // دالة مساعدة لحساب طول المسار للرسم (للقلب والاسم فقط)
+            function setupPathDrawing(element) {
+                const length = element.getTotalLength();
+                element.style.strokeDasharray = length;
+                element.style.strokeDashoffset = length;
+                element.getBoundingClientRect(); // Trigger reflow
+            }
+
+            const heartPath = document.getElementById('heartPath');
+            const namePaths = document.querySelectorAll('#rahmaName path');
+            const surroundingTexts = document.querySelectorAll('.surrounding-text');
+
+            // 1. الإعداد الأولي (تجهيز أطوال مسارات الرسم فقط)
+            setupPathDrawing(heartPath);
+            namePaths.forEach(path => setupPathDrawing(path));
+
+            // === تسلسل الأنيميشن الزمني ===
+
+            // الخطوة 1: رسم القلب (بعد نصف ثانية من التحميل)
+            setTimeout(() => {
+                heartPath.classList.add('start-drawing');
+            }, 500);
+
+            // الخطوة 2: رسم الاسم بالداخل (بعد 1.5 ثانية - ليكون متداخلاً مع القلب)
+            setTimeout(() => {
+                namePaths.forEach(path => path.classList.add('start-drawing'));
+            }, 1500);
+
+            // الخطوة 3: ملء القلب بالأحمر (بعد انتهاء الرسم تقريباً)
+            setTimeout(() => {
+                heartPath.classList.add('filled');
+            }, 4500);
+
+            // الخطوة 4: ظهور النصوص العربية بنعومة (بعد ملء القلب مباشرة)
+            setTimeout(() => {
+                surroundingTexts.forEach(text => text.classList.add('fade-in-text'));
+            }, 5000);
+
+        });
+    </script>
+
+</body>
+</html>
