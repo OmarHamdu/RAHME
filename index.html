@@ -1,180 +1,405 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rahma's Heartbeat Arabic</title>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@1,700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <title>Rahma's Universe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@1,700&family=Dancing+Script:wght@700&family=Montserrat:wght@900&display=swap" rel="stylesheet">
     <style>
         :root {
             --main-red: #d90429;
-            --glow-red: #ff4d6d;
-            --text-cream: #fffdf7;
-            --bg-dark: #0a0a14;
+            --deep-red: #2a0a12;
+            --gold: #ffd700;
+            --text-cream: #fff0f3;
         }
 
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: var(--bg-dark);
             margin: 0;
             overflow: hidden;
+            background-color: black;
+            font-family: 'Amiri', serif;
+            color: var(--text-cream);
         }
 
-        .stage {
-            width: 100%;
-            max-width: 800px;
-            height: auto;
-            aspect-ratio: 4/3;
-            position: relative;
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            background: radial-gradient(circle at center, #3d0812 0%, #000000 100%);
         }
 
-        svg {
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            overflow: visible;
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
         }
 
-        /* --- أنماط الرسم المشتركة (للقلب والاسم فقط) --- */
-        .draw-path {
-            fill: transparent;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-dasharray: 2000; /* قيمة افتراضية كبيرة */
-            stroke-dashoffset: 2000;
-            opacity: 0;
+        .name-box {
+            text-align: center;
+            z-index: 10;
+            filter: drop-shadow(0 0 25px rgba(255, 0, 80, 1));
+            animation: breathe 3s infinite ease-in-out;
         }
 
-        /* --- تنسيق القلب --- */
-        #heartPath {
-            stroke: var(--main-red);
-            stroke-width: 6; /* جعلت خط القلب أسمك قليلاً */
-            filter: drop-shadow(0 0 15px var(--glow-red));
-            transition: fill 2s ease-in-out;
-        }
-
-        /* كلاس الامتلاء النهائي للقلب */
-        #heartPath.filled {
-            fill: rgba(217, 4, 41, 0.9);
-        }
-
-        /* --- تنسيق اسم رحمة --- */
-        #rahmaName path {
-            stroke: var(--text-cream);
-            stroke-width: 3.5; /* جعلت خط الاسم أسمك وأوضح */
-            filter: drop-shadow(0 0 8px var(--text-cream));
-        }
-
-        /* --- تنسيق الجمل العربية المحيطة --- */
-        .surrounding-text {
-            font-family: 'Amiri', serif; /* استخدام الخط العربي */
-            font-size: 32px; /* تكبير حجم الخط العربي */
+        .arabic-name {
+            font-size: 6rem;
             font-weight: 700;
             font-style: italic;
-            fill: var(--text-cream);
-            text-shadow: 0 0 5px var(--glow-red);
-            opacity: 0; /* مخفي في البداية */
-            transition: opacity 2.5s ease-in-out; /* انتقال ناعم للظهور */
+            color: white;
+            margin: 0;
+            line-height: 1;
+            text-shadow: 0 0 25px #ff0040;
+            font-family: 'Amiri', serif;
+            position: relative;
+            z-index: 20;
         }
 
-        /* --- كلاسات تفعيل الأنيميشن --- */
-        /* 1. بدء رسم الخطوط (للقلب والاسم) */
-        .start-drawing {
-            opacity: 1;
-            animation: drawing 3.5s ease-out forwards;
+        .english-name {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: #ffb3c1;
+            margin-top: -10px;
+            text-shadow: 0 0 15px #ff4d6d;
+            z-index: 20;
         }
 
-        /* 2. ظهور النصوص العربية */
-        .fade-in-text {
-            opacity: 1;
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
-        /* --- Keyframes --- */
-        @keyframes drawing {
-            to { stroke-dashoffset: 0; }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 30;
+        }
+        .btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Amiri', serif;
+            font-size: 1rem;
+            transition: 0.3s;
+            backdrop-filter: blur(3px);
+        }
+        .btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
 
     </style>
 </head>
 <body>
 
-    <div class="stage">
-        <svg viewBox="0 0 800 600">
-            
-            <defs>
-                <path id="topCurve" d="M 200,220 A 250,180 0 0,1 600,220" />
-                <path id="bottomCurve" d="M 220,480 A 220,150 0 0,0 580,480" />
-            </defs>
+    <div id="canvas-container"></div>
 
-            <path id="heartPath" class="draw-path" d="M400,530 C250,400 180,300 240,200 C285,130 360,170 400,230 C440,170 515,130 560,200 C620,300 550,400 400,530 Z" />
-            
-            <g id="rahmaName" transform="translate(250, 200) scale(0.8)">
-                <path class="draw-path" d="M30.5,105 C30.5,105 25,65 45,35 C55,20 85,20 95,45 C100,60 90,80 65,85 M65,85 C75,90 95,115 105,130" />
-                <path class="draw-path" d="M135,95 C125,85 115,95 115,115 C115,130 125,135 135,130 M135,95 C135,95 135,125 135,130 C135,135 145,135 150,125" />
-                <path class="draw-path" d="M165,20 C160,60 155,125 155,130 M155,95 C175,85 190,95 190,125 C190,135 195,135 200,125" />
-                <path class="draw-path" d="M210,95 C205,130 205,130 205,130 M210,100 C225,85 240,95 240,125 M240,100 C255,85 270,95 270,125 C270,135 275,135 280,125" />
-                <path class="draw-path" d="M315,95 C305,85 295,95 295,115 C295,130 305,135 315,130 M315,95 C315,95 315,125 315,130 C315,135 325,135 330,125" />
-            </g>
-
-            <text class="surrounding-text" dy="-15">
-                <textPath href="#topCurve" startOffset="50%" text-anchor="middle">
-                    أنتِ نبض قلبي
-                </textPath>
-            </text>
-            
-            <text class="surrounding-text" dy="40">
-                <textPath href="#bottomCurve" startOffset="50%" text-anchor="middle">
-                    حب لا ينتهي
-                </textPath>
-            </text>
-
-        </svg>
+    <div id="ui-layer">
+        <div class="name-box">
+            <h1 class="arabic-name">رحمة</h1>
+            <div class="english-name">Rahma</div>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // دالة مساعدة لحساب طول المسار للرسم (للقلب والاسم فقط)
-            function setupPathDrawing(element) {
-                const length = element.getTotalLength();
-                element.style.strokeDasharray = length;
-                element.style.strokeDashoffset = length;
-                element.getBoundingClientRect(); // Trigger reflow
+    <div class="controls">
+        <button class="btn" onclick="pulseHeart()">جعل القلب ينبض بقوة 💗</button>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
             }
-
-            const heartPath = document.getElementById('heartPath');
-            const namePaths = document.querySelectorAll('#rahmaName path');
-            const surroundingTexts = document.querySelectorAll('.surrounding-text');
-
-            // 1. الإعداد الأولي (تجهيز أطوال مسارات الرسم فقط)
-            setupPathDrawing(heartPath);
-            namePaths.forEach(path => setupPathDrawing(path));
-
-            // === تسلسل الأنيميشن الزمني ===
-
-            // الخطوة 1: رسم القلب (بعد نصف ثانية من التحميل)
-            setTimeout(() => {
-                heartPath.classList.add('start-drawing');
-            }, 500);
-
-            // الخطوة 2: رسم الاسم بالداخل (بعد 1.5 ثانية - ليكون متداخلاً مع القلب)
-            setTimeout(() => {
-                namePaths.forEach(path => path.classList.add('start-drawing'));
-            }, 1500);
-
-            // الخطوة 3: ملء القلب بالأحمر (بعد انتهاء الرسم تقريباً)
-            setTimeout(() => {
-                heartPath.classList.add('filled');
-            }, 4500);
-
-            // الخطوة 4: ظهور النصوص العربية بنعومة (بعد ملء القلب مباشرة)
-            setTimeout(() => {
-                surroundingTexts.forEach(text => text.classList.add('fade-in-text'));
-            }, 5000);
-
-        });
+        }
     </script>
 
+    <script type="module">
+        import * as THREE from 'three';
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0a0205, 0.018); 
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 28; // أبعد قليلاً لرؤية المزيد
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // ==========================================
+        // 1. القلب الكبير المركزي
+        // ==========================================
+        function getHeartShape(scale = 1) {
+            const heartShape = new THREE.Shape();
+            const x = 0, y = 0;
+            heartShape.moveTo(x + 5 * scale, y + 5 * scale);
+            heartShape.bezierCurveTo(x + 5 * scale, y + 5 * scale, x + 4 * scale, y, x, y);
+            heartShape.bezierCurveTo(x - 6 * scale, y, x - 6 * scale, y + 7 * scale, x - 6 * scale, y + 7 * scale);
+            heartShape.bezierCurveTo(x - 6 * scale, y + 11 * scale, x - 3 * scale, y + 15.4 * scale, x + 5 * scale, y + 19 * scale);
+            heartShape.bezierCurveTo(x + 12 * scale, y + 15.4 * scale, x + 16 * scale, y + 11 * scale, x + 16 * scale, y + 7 * scale);
+            heartShape.bezierCurveTo(x + 16 * scale, y + 7 * scale, x + 16 * scale, y, x + 10 * scale, y);
+            heartShape.bezierCurveTo(x + 7 * scale, y, x + 5 * scale, y + 5 * scale, x + 5 * scale, y + 5 * scale);
+            return heartShape;
+        }
+
+        const bigHeartMat = new THREE.MeshPhysicalMaterial({
+            color: 0xff0040,
+            metalness: 0.1,
+            roughness: 0.1,
+            transmission: 0.4,
+            thickness: 2,
+            emissive: 0x550011,
+            emissiveIntensity: 1,
+            side: THREE.DoubleSide
+        });
+
+        const extrudeSettings = { depth: 2, bevelEnabled: true, bevelSegments: 5, steps: 2, bevelSize: 0.5, bevelThickness: 0.5 };
+        const bigHeartGeo = new THREE.ExtrudeGeometry(getHeartShape(1.8), extrudeSettings);
+        bigHeartGeo.center();
+        bigHeartGeo.rotateZ(Math.PI);
+
+        const bigHeart = new THREE.Mesh(bigHeartGeo, bigHeartMat);
+        scene.add(bigHeart);
+
+        // ==========================================
+        // 2. الجمل الرومانسية العائمة (تم التعديل لتكون واضحة جداً)
+        // ==========================================
+        const sentences = [
+            "أنتِ حياتي", "أحبك يا رحمة", "أنتِ الروح", "نبضي", 
+            "أجمل حكاية", "قلبي معك", "دنيايا", "يا كل العمر", 
+            "حب أبدي", "عيني عليك باردة", "أغلى من روحي", "حبيبتي", "أنتِ العالم",
+            "يا بختي بيكِ", "منوره حياتي"
+        ];
+
+        function createTextSprite(text) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // تكبير الكانفاس لضمان وضوح النص
+            const fontSize = 90; // حجم خط كبير جداً
+            canvas.width = 1024;
+            canvas.height = 256;
+
+            ctx.font = `bold ${fontSize}px 'Amiri', serif`;
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // توهج قوي جداً
+            ctx.shadowColor = '#ff0055';
+            ctx.shadowBlur = 40; 
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#ff0055';
+            ctx.strokeText(text, 512, 128);
+            ctx.fillText(text, 512, 128);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ 
+                map: texture, 
+                transparent: true,
+                opacity: 1.0, // شفافية كاملة
+                blending: THREE.AdditiveBlending // إضافة للألوان لتبدو مضيئة
+            });
+            const sprite = new THREE.Sprite(material);
+            return sprite;
+        }
+
+        const textSprites = [];
+        // توزيع الجمل بشكل عشوائي ولكن داخل المجال المرئي
+        for (let i = 0; i < sentences.length; i++) {
+            const sprite = createTextSprite(sentences[i]);
+            
+            // تحديد موقع عشوائي
+            const x = (Math.random() - 0.5) * 45;
+            const y = (Math.random() - 0.5) * 35;
+            const z = (Math.random() - 0.5) * 10 + 5; // Z موجب لكي تكون أمام الخلفية قليلاً
+
+            sprite.position.set(x, y, z);
+            
+            // تكبير حجم السبرايت جداً ليظهر النص بوضوح
+            sprite.scale.set(20, 5, 1); 
+            
+            sprite.userData = {
+                speed: Math.random() * 0.015 + 0.005,
+                wobble: Math.random() * Math.PI
+            };
+            scene.add(sprite);
+            textSprites.push(sprite);
+        }
+
+        // ==========================================
+        // 3. الخلفية الكثيفة (قلب صغيرة و حروف R)
+        // ==========================================
+        const smallHeartGeo = new THREE.ExtrudeGeometry(getHeartShape(0.5), extrudeSettings);
+        smallHeartGeo.center();
+        smallHeartGeo.rotateZ(Math.PI);
+        const smallHeartMat = new THREE.MeshStandardMaterial({ 
+            color: 0x4a0012, 
+            emissive: 0x220008,
+            roughness: 0.5
+        });
+        
+        const heartCount = 600;
+        const bgHeartMesh = new THREE.InstancedMesh(smallHeartGeo, smallHeartMat, heartCount);
+        const dummy = new THREE.Object3D();
+
+        for(let i=0; i<heartCount; i++) {
+            const scale = Math.random() * 0.5 + 0.1;
+            dummy.position.set((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 50 - 15); // بعيد في الخلف
+            dummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+            dummy.scale.set(scale, scale, scale);
+            dummy.updateMatrix();
+            bgHeartMesh.setMatrixAt(i, dummy.matrix);
+        }
+        scene.add(bgHeartMesh);
+
+        function createRTexture() {
+            const c = document.createElement('canvas');
+            c.width = 128; c.height = 128;
+            const ctx = c.getContext('2d');
+            ctx.font = 'bold 100px Montserrat, Arial';
+            ctx.fillStyle = '#ff4d6d';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = '#d90429';
+            ctx.shadowBlur = 15;
+            ctx.fillText('R', 64, 64);
+            return new THREE.CanvasTexture(c);
+        }
+        const rSpriteMat = new THREE.SpriteMaterial({ 
+            map: createRTexture(), 
+            transparent: true, 
+            opacity: 0.5, // تقليل شفافية الحروف R لكي لا تطغى على الجمل
+            blending: THREE.AdditiveBlending 
+        });
+
+        const rCount = 300;
+        const rSprites = [];
+        for(let i=0; i<rCount; i++) {
+            const s = new THREE.Sprite(rSpriteMat);
+            const scale = Math.random() * 1.0 + 0.5;
+            s.position.set((Math.random()-0.5)*80, (Math.random()-0.5)*80, (Math.random()-0.5)*40 - 5);
+            s.scale.set(scale, scale, 1);
+            s.userData = {
+                speedY: (Math.random() - 0.5) * 0.05,
+                speedX: (Math.random() - 0.5) * 0.05,
+                rot: Math.random() * Math.PI
+            };
+            scene.add(s);
+            rSprites.push(s);
+        }
+
+        // ==========================================
+        // 4. الإضاءة
+        // ==========================================
+        const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambient);
+
+        const pointLight = new THREE.PointLight(0xff0040, 4, 60);
+        pointLight.position.set(0, 0, 10);
+        scene.add(pointLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffc2d1, 1.5);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        // ==========================================
+        // 5. الحركة
+        // ==========================================
+        const clock = new THREE.Clock();
+        let mouseX = 0, mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        window.pulseHeart = () => {
+            let startTime = Date.now();
+            const duration = 2000;
+            function fastPulse() {
+                const elapsed = Date.now() - startTime;
+                if(elapsed < duration) {
+                    const scale = 1 + Math.sin(elapsed * 0.05) * 0.2;
+                    bigHeart.scale.set(scale, scale, scale);
+                    requestAnimationFrame(fastPulse);
+                }
+            }
+            fastPulse();
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // نبض القلب
+            const gentleBeat = 1 + Math.sin(time * 3) * 0.03;
+            if(bigHeart.scale.x <= 1.2) {
+                 bigHeart.scale.set(gentleBeat, gentleBeat, gentleBeat);
+                 bigHeart.rotation.y = Math.sin(time * 0.5) * 0.1;
+            }
+
+            // حركة الجمل (تأكدت من أنها تتحرك بوضوح)
+            textSprites.forEach(sprite => {
+                sprite.position.y += sprite.userData.speed;
+                sprite.material.opacity = 0.7 + Math.sin(time * 2 + sprite.position.x) * 0.3;
+                
+                // إعادة التدوير إذا خرجت من الشاشة
+                if(sprite.position.y > 20) {
+                    sprite.position.y = -20;
+                    sprite.position.x = (Math.random() - 0.5) * 45;
+                }
+            });
+
+            // حركة الخلفية
+            bgHeartMesh.rotation.y = time * 0.08;
+            bgHeartMesh.rotation.x = time * 0.02;
+
+            rSprites.forEach(s => {
+                s.position.x += s.userData.speedX;
+                s.position.y += s.userData.speedY;
+                s.position.z += Math.sin(time + s.userData.rot) * 0.02;
+                if(s.position.y > 40) s.position.y = -40;
+                if(s.position.y < -40) s.position.y = 40;
+                if(s.position.x > 40) s.position.x = -40;
+                if(s.position.x < -40) s.position.x = 40;
+            });
+
+            camera.position.x += (mouseX * 10 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 10 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
 </body>
 </html>
